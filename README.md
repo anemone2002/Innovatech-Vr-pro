@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
 import './RegistrationForm.css';
 
 const RegistrationForm = () => {
+  const [message, setMessage] = useState(null);
+  const [messageType, setMessageType] = useState(null); // 'success' or 'error'
+
   const formik = useFormik({
     initialValues: {
       name: '',
@@ -19,38 +22,51 @@ const RegistrationForm = () => {
       confirmPassword: Yup.string().oneOf([Yup.ref('password'), null], 'Passwords must match').required('Required')
     }),
     onSubmit: values => {
-      axios.post('/api/register', values)
-        .then(response => alert('Registration successful'))
-        .catch(error => alert('Registration failed'));
+      setMessage(null); // Reset message
+      axios.post('http://yourserver.com/api/register', values)
+        .then(response => {
+          setMessage('Registration successful');
+          setMessageType('success');
+        })
+        .catch(error => {
+          const errorMsg = error.response?.data?.message || error.message;
+          setMessage('Registration failed: ' + errorMsg);
+          setMessageType('error');
+        });
     }
   });
 
   return (
-    <form onSubmit={formik.handleSubmit} className="registration-form">
-      <label>Name</label>
-      <input type="text" {...formik.getFieldProps('name')} />
-      {formik.touched.name && formik.errors.name ? <div className="error">{formik.errors.name}</div> : null}
-      
-      <label>Email</label>
-      <input type="email" {...formik.getFieldProps('email')} />
-      {formik.touched.email && formik.errors.email ? <div className="error">{formik.errors.email}</div> : null}
-      
-      <label>Password</label>
-      <input type="password" {...formik.getFieldProps('password')} />
-      {formik.touched.password && formik.errors.password ? <div className="error">{formik.errors.password}</div> : null}
-      
-      <label>Confirm Password</label>
-      <input type="password" {...formik.getFieldProps('confirmPassword')} />
-      {formik.touched.confirmPassword && formik.errors.confirmPassword ? <div className="error">{formik.errors.confirmPassword}</div> : null}
-      
-      <button type="submit">Register</button>
-    </form>
+    <div>
+      {message && (
+        <div className={`message ${messageType}`}>
+          {message}
+        </div>
+      )}
+      <form onSubmit={formik.handleSubmit} className="registration-form">
+        <label>Name</label>
+        <input type="text" {...formik.getFieldProps('name')} />
+        {formik.touched.name && formik.errors.name ? <div className="error">{formik.errors.name}</div> : null}
+
+        <label>Email</label>
+        <input type="email" {...formik.getFieldProps('email')} />
+        {formik.touched.email && formik.errors.email ? <div className="error">{formik.errors.email}</div> : null}
+
+        <label>Password</label>
+        <input type="password" {...formik.getFieldProps('password')} />
+        {formik.touched.password && formik.errors.password ? <div className="error">{formik.errors.password}</div> : null}
+
+        <label>Confirm Password</label>
+        <input type="password" {...formik.getFieldProps('confirmPassword')} />
+        {formik.touched.confirmPassword && formik.errors.confirmPassword ? <div className="error">{formik.errors.confirmPassword}</div> : null}
+
+        <button type="submit">Register</button>
+      </form>
+    </div>
   );
 };
 
 export default RegistrationForm;
-
-
 
 
 
@@ -89,6 +105,28 @@ export default RegistrationForm;
 
 .registration-form button:hover {
   background-color: #0056b3;
+}
+
+.message {
+  margin: 20px auto;
+  padding: 10px;
+  width: 300px;
+  text-align: center;
+  border-radius: 5px;
+}
+
+.message.success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.message.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
 }
 
 
